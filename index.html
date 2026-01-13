@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>QUIZ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',Arial,sans-serif;}
+    body{height:100vh;display:flex;justify-content:center;align-items:center;background:linear-gradient(135deg,#667eea,#764ba2);}
+    body.dark{background:#1e1e1e;color:#eee;}
+    body.dark .box{background:#2b2b2b;color:#eee;}
+    .cloud{position:absolute;background:rgba(255,255,255,0.15);border-radius:50%;animation:float 20s linear infinite;}
+    .cloud:nth-child(1){width:300px;height:300px;top:10%;left:-150px;animation-duration:35s;}
+    .cloud:nth-child(2){width:200px;height:200px;bottom:15%;left:-100px;animation-duration:25s;}
+    @keyframes float{from{transform:translateX(0)}to{transform:translateX(120vw)}}
+    .box{position:relative;background:rgba(255,255,255,0.95);padding:50px 40px;border-radius:20px;width:380px;text-align:center;box-shadow:0 20px 40px rgba(0,0,0,.25);}
+    .title{font-size:64px;font-weight:900;letter-spacing:6px;background:linear-gradient(90deg,#667eea,#764ba2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:10px;animation:glow 2s ease-in-out infinite alternate;}
+    @keyframes glow{from{text-shadow:0 0 5px rgba(118,75,162,.4)}to{text-shadow:0 0 18px rgba(118,75,162,.8)}}
+    .subtitle{color:#555;margin-bottom:35px;font-size:15px;}
+    button{width:100%;padding:14px;margin-bottom:16px;font-size:16px;font-weight:bold;border:none;border-radius:12px;cursor:pointer;transition:.25s;}
+    .play{background:#667eea;color:white;}
+    .create{background:#ffd966;}
+    .count{margin-bottom:25px;font-weight:bold;color:#444;}
+    button:hover{transform:translateY(-2px);box-shadow:0 8px 16px rgba(0,0,0,.2);}
+    footer{margin-top:15px;font-size:12px;color:#888;}
+  </style>
+</head>
+<body>
+
+  <div class="cloud"></div>
+  <div class="cloud"></div>
+
+  <div class="box">
+    <button id="toggleTheme" style="margin-bottom:15px">🌙 Dark mode</button>
+    <div class="title">QUIZ</div>
+    <div class="subtitle">Học • Luyện tập • Thi thử</div>
+    <div id="quizCount" class="count">📚 Đã tạo: 0 bài quiz</div>
+
+    <button class="play" onclick="location.href='play.html'">📝 Làm bài quiz</button>
+    <button class="create" onclick="location.href='create.html'">➕ Tạo bài quiz</button>
+    <footer>Made with 💜 by You</footer>
+  </div>
+
+<script>
+  const quizzes = JSON.parse(localStorage.getItem('quizzes') || '[]');
+  document.getElementById('quizCount').textContent = `📚 Đã tạo: ${quizzes.length} bài quiz`;
+
+  const btn = document.getElementById('toggleTheme');
+  const mode = localStorage.getItem('theme');
+  if(mode === 'dark'){document.body.classList.add('dark'); btn.textContent='☀ Light mode';}
+
+  btn.onclick = () => {
+    document.body.classList.toggle('dark');
+    const isDark = document.body.classList.contains('dark');
+    localStorage.setItem('theme', isDark?'dark':'light');
+    btn.textContent = isDark?'☀ Light mode':'🌙 Dark mode';
+  };
+</script>
+</body>
+</html>

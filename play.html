@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Làm bài Quiz</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f4f6f8}
+.container{max-width:1100px;margin:30px auto;background:#fff;border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,.1);padding:24px}
+.layout{display:grid;grid-template-columns:1fr 260px;gap:20px}
+.question-box{border-right:1px solid #eee;padding-right:20px}
+.q-title{font-weight:bold;margin-bottom:10px}
+.q-text{margin-bottom:16px}
+.option{border:1px solid #ddd;border-radius:8px;padding:10px;margin-bottom:8px;cursor:pointer}
+.correct{background:#d4edda;border-color:#28a745}
+.wrong{background:#f8d7da;border-color:#dc3545}
+.nav{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.nav button{padding:8px 0;border:none;border-radius:6px;font-weight:bold;background:#eee;cursor:pointer}
+.nav button.done{background:#ffd966}
+.nav button.current{outline:2px solid #111}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+select{padding:8px;border-radius:6px}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="top">
+  <button onclick="location.href='index.html'">🏠 Trang chính</button>
+  <select id="modeSelect">
+    <option value="practice">1️⃣ Luyện tập</option>
+    <option value="exam">2️⃣ Thi thật</option>
+    <option value="review">3️⃣ Xem lại</option>
+  </select>
+  <select id="quizSelect" onchange="loadQuiz()"></select>
+</div>
+
+<div class="layout">
+  <div class="question-box">
+    <div class="q-title" id="qNum"></div>
+    <div class="q-text" id="qText"></div>
+    <div id="options"></div>
+  </div>
+  <div>
+    <h3>Câu hỏi</h3>
+    <div class="nav" id="nav"></div>
+  </div>
+</div>
+</div>
+
+<script>
+let quizzes=JSON.parse(localStorage.getItem('quizzes')||'[]');
+let quiz=null,current=0,userAns={},mode='practice';
+
+document.getElementById('modeSelect').onchange=(e)=>{mode=e.target.value; render();};
+
+const select=document.getElementById('quizSelect');
+select.innerHTML='<option value="">-- Chọn bài quiz --</option>';
+quizzes.forEach((q,i)=>{
+  const op=document.createElement('option'); op.value=i; op.textContent=q.title; select.appendChild(op);
+});
+
+function loadQuiz(){
+  const idx=select.value; if(idx==='') return;
+  quiz=quizzes[idx]; current=0; userAns={};
+  renderNav(); render();
+}
+
+function renderNav(){
+  const nav=document.getElementById('nav'); nav.innerHTML='';
+  quiz.questions.forEach((_,i)=>{
+    const b=document.createElement('button'); b.textContent=i+1; b.onclick=()=>{current=i; render();}; 
+    nav.appendChild(b);
+  });
+}
+
+function render(){
+  if(!quiz) return;
+  const q=quiz.questions[current];
+  document.getElementById('qNum').textContent='Câu '+(current+1);
+  document.getElementById('qText').textContent=q.text;
+  const optBox=document.getElementById('options'); optBox.innerHTML='';
+  Object.keys(q.options).forEach(k=>{
+    if(!q.options[k]) return;
+    const div=document.createElement('div'); div.className='option'; div.textContent=k+'. '+q.options[k];
+    if(userAns[current]){
+      if(mode==='practice'||mode==='review'){
+        if(k===q.answer) div.classList.add('correct');
+        else if(userAns[current]===k) div.classList.add('wrong');
+      }
+    }
+    div.onclick=()=>{if(userAns[current]) return; userAns[current]=k; if(mode!=='exam') render(); updateNav();};
+    optBox.appendChild(div);
+  });
+  updateNav();
+}
+
+function updateNav(){
+  const buttons=document.querySelectorAll('.nav button');
+  buttons.forEach((b,i)=>{b.className=''; if(userAns[i]) b.classList.add('done'); if(i===current) b.classList.add('current');});
+}
+</script>
+</body>
+</html>

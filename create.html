@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Tạo bài Quiz</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f4f6f8}
+.container{max-width:900px;margin:30px auto;background:#fff;border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,.1);padding:24px}
+h1{text-align:center;margin-bottom:20px}
+.field{margin-bottom:16px}
+label{font-weight:bold;display:block;margin-bottom:6px}
+input[type=text],textarea{width:100%;padding:10px;border-radius:6px;border:1px solid #ccc;font-size:14px}
+textarea{min-height:80px}
+.question{border:1px solid #ddd;border-radius:10px;padding:16px;margin-bottom:20px}
+.options{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.options input{width:100%}
+.answer{margin-top:10px}
+.btn{padding:10px 16px;border:none;border-radius:8px;font-weight:bold;cursor:pointer}
+.add{background:#111;color:#fff}
+.save{background:#ffd966}
+.remove{background:#f8d7da}
+.top-actions{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="top-actions">
+  <h1>Tạo bài Quiz</h1>
+  <button class="btn" onclick="location.href='index.html'">🏠 Trang chính</button>
+</div>
+
+<div class="field">
+  <label>Tên bài quiz</label>
+  <input type="text" id="quizTitle" placeholder="Ví dụ: Kinh tế học – Chương 1" />
+</div>
+
+<hr style="margin:30px 0">
+
+<h2>📥 Import quiz</h2>
+<div class="field">
+  <label>Dán nội dung đề</label>
+  <textarea id="rawQuestions" placeholder="Câu 1: ... A. ... B. ... C. ... D. ... E. ..."></textarea>
+</div>
+
+<div class="field">
+  <label>File đáp án (.txt)</label>
+  <input type="file" id="answerFile" accept=".txt">
+</div>
+
+<button class="btn add" onclick="importQuiz()">📥 Import đề</button>
+<button class="btn add" onclick="exportQuiz()">📤 Xuất toàn bộ quiz</button>
+
+<div id="questions"></div>
+
+<button class="btn add" onclick="addQuestion()">➕ Thêm câu hỏi</button>
+<button class="btn save" style="float:right" onclick="saveQuiz()">💾 Lưu bài quiz</button>
+</div>
+
+<script>
+let qCount=0;
+let quizList=JSON.parse(localStorage.getItem('quizzes')||'[]');
+
+function addQuestion(){
+  qCount++;
+  const div=document.createElement('div');
+  div.className='question';
+  div.innerHTML=`
+    <label>Câu ${qCount}</label>
+    <textarea placeholder="Nhập nội dung câu hỏi..."></textarea>
+    <div class="options">
+      <input placeholder="a">
+      <input placeholder="b">
+      <input placeholder="c">
+      <input placeholder="d">
+      <input placeholder="e">
+    </div>
+    <div class="answer">
+      <label>Đáp án đúng:</label>
+      ${['a','b','c','d','e'].map(k=>`<label><input type="radio" name="ans${qCount}" value="${k}"> ${k}</label>`).join('')}
+    </div>
+    <button class="btn remove" onclick="this.parentElement.remove()">❌ Xoá câu</button>
+  `;
+  document.getElementById('questions').appendChild(div);
+}
+
+function saveQuiz(){
+  const title=document.getElementById('quizTitle').value.trim();
+  if(!title){alert('Chưa nhập tên bài quiz'); return;}
+  const qs=document.querySelectorAll('.question');
+  if(qs.length===0){alert('Chưa có câu hỏi nào'); return;}
+  const quiz={id:Date.now(), title, questions:[]};
+  qs.forEach(q=>{
+    const text=q.querySelector('textarea').value;
+    const opts=q.querySelectorAll('.options input');
+    const answer=q.querySelector('input[type=radio]:checked');
+    quiz.questions.push({
+      text,
+      options:{a:opts[0].value,b:opts[1].value,c:opts[2].value,d:opts[3].value,e:opts[4].value},
+      answer: answer? answer.value:null
+    });
+  });
+  quizList.push(quiz);
+  localStorage.setItem('quizzes', JSON.stringify(quizList));
+  alert('Đã lưu bài quiz!');
+}
+
+function downloadFile(content, filename){
+  const blob=new Blob([content], {type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=filename;
+  a.click();
+}
+
+function exportQuiz(){
+  downloadFile(JSON.stringify(quizList),'quizzes.json');
+}
+
+function importQuiz(){
+  const file=document.getElementById('answerFile').files[0];
+  if(!file){alert('Chọn file JSON để import'); return;}
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      quizList=JSON.parse(e.target.result);
+      localStorage.setItem('quizzes', JSON.stringify(quizList));
+      alert('Import thành công!');
+    }catch(err){
+      alert('File không hợp lệ');
+    }
+  };
+  reader.readAsText(file);
+}
+
+// Khởi tạo 1 câu hỏi mặc định
+addQuestion();
+</script>
+</body>
+</html>
